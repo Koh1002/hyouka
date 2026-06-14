@@ -89,7 +89,7 @@ async function boot(){
     CFG=await (await fetch("config.json?_="+Date.now())).json();
     ITEMS=await (await fetch(CFG.items_file+"?_="+Date.now())).json();
   }catch(e){ $("#err").textContent="読み込み失敗: "+e+"（config.json / データJSONを確認）"; return; }
-  KEY="hyouka:"+(CFG.title||"x");
+  KEY="hyouka:"+(CFG.storage_key||CFG.title||"x");  // stable key: edits to title won't orphan saved answers
   load();
   $("#title").textContent=CFG.title||"hyouka";
   $("#subtitle").textContent=CFG.subtitle||"";
