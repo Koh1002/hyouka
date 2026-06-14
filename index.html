@@ -88,10 +88,11 @@ function md(s){ try{ return DOMPurify.sanitize(marked.parse(String(s||""))); }
 function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 
 async function boot(){
+  const cfgFile=new URLSearchParams(location.search).get("config")||"config.json";  // ?config=... to load other tasks
   try{
-    CFG=await (await fetch("config.json?_="+Date.now())).json();
+    CFG=await (await fetch(cfgFile+"?_="+Date.now())).json();
     ITEMS=await (await fetch(CFG.items_file+"?_="+Date.now())).json();
-  }catch(e){ $("#err").textContent="読み込み失敗: "+e+"（config.json / データJSONを確認）"; return; }
+  }catch(e){ $("#err").textContent="読み込み失敗: "+e+"（"+cfgFile+" / データJSONを確認）"; return; }
   KEY="hyouka:"+(CFG.storage_key||CFG.title||"x");  // stable key: edits to title won't orphan saved answers
   load();
   $("#title").textContent=CFG.title||"hyouka";
