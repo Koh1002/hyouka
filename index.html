@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>hyouka — human scoring</title>
+<style>
+  :root{ --navy:#23436b; --bg:#f4f6f9; --card:#fff; --line:#dde4ee; --ink:#222; --sub:#667; }
+  *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;}
+  header{position:sticky;top:0;background:var(--navy);color:#fff;padding:10px 14px;z-index:10}
+  header h1{font-size:15px;margin:0;font-weight:700}
+  header .sub{font-size:11px;color:#c7d6ea;margin-top:2px}
+  .bar{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .bar .prog{flex:1;font-size:12px;color:#dfe8f4}
+  .bar button{font-size:12px;padding:6px 10px;border:0;border-radius:8px;background:#3a5b86;color:#fff}
+  .track{height:5px;background:#1b3458;border-radius:3px;margin-top:6px;overflow:hidden}
+  .track>i{display:block;height:100%;background:#7fb069;width:0}
+  main{max-width:760px;margin:0 auto;padding:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:90px}
+  .badge{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#888;border-radius:6px;padding:2px 8px}
+  .fld{margin:10px 0}
+  .fld .lab{font-size:11px;color:var(--sub);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .fld .title{font-size:17px;font-weight:700;line-height:1.45;margin-top:2px}
+  .fld .txt{font-size:14px;line-height:1.6;margin-top:3px;white-space:pre-wrap}
+  .longtext{font-size:13px;line-height:1.6;margin-top:4px;white-space:pre-wrap;background:#fafbfd;
+    border:1px solid var(--line);border-radius:10px;padding:10px;max-height:46vh;overflow:auto}
+  .q{font-size:15px;font-weight:700;margin:14px 0 8px}
+  .opts{display:flex;flex-direction:column;gap:8px}
+  .opts button{font-size:15px;text-align:left;padding:14px;border:2px solid var(--line);border-radius:12px;
+    background:#fff;color:var(--ink);font-weight:600}
+  .opts button.sel{color:#fff}
+  .note{width:100%;margin-top:10px;font-size:14px;padding:10px;border:1px solid var(--line);border-radius:10px;
+    min-height:48px;font-family:inherit}
+  .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+    display:flex;gap:8px;padding:10px;max-width:760px;margin:0 auto}
+  .nav button{flex:1;font-size:15px;padding:12px;border:0;border-radius:10px;background:#e9eef5;color:var(--navy);font-weight:700}
+  .nav button.prim{background:var(--navy);color:#fff}
+  .done{color:#2e7d32;font-weight:700;font-size:12px}
+  #err{color:#c62828;padding:14px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">hyouka</h1><div class="sub" id="subtitle"></div>
+  <div class="bar">
+    <span class="prog" id="prog">…</span>
+    <button id="firstUnanswered">未回答へ</button>
+    <button id="exportCsv">CSV書き出し</button>
+    <button id="copyTsv">TSVコピー</button>
+  </div>
+  <div class="track"><i id="track"></i></div>
+</header>
+<main><div id="err"></div><div class="card" id="card"></div></main>
+<div class="nav">
+  <button id="prev">← 前へ</button>
+  <button id="next" class="prim">次へ →</button>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+let CFG=null, ITEMS=[], idx=0, KEY="hyouka", ans={};
+const save=()=>localStorage.setItem(KEY, JSON.stringify(ans));
+const load=()=>{ try{ans=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){ans={}} };
+
+async function boot(){
+  try{
+    CFG=await (await fetch("config.json?_="+Date.now())).json();
+    ITEMS=await (await fetch(CFG.items_file+"?_="+Date.now())).json();
+  }catch(e){ $("#err").textContent="読み込み失敗: "+e+" （config.json / データJSONを確認）"; return; }
+  KEY="hyouka:"+(CFG.title||"x");
+  load();
+  $("#title").textContent=CFG.title||"hyouka";
+  $("#subtitle").textContent=CFG.subtitle||"";
+  idx=Math.max(0, ITEMS.findIndex(it=>!(idKey(it) in ans))); if(idx<0)idx=0;
+  render();
+}
+const idKey=it=>String(it[CFG.id_field]??it.id);
+function render(){
+  const it=ITEMS[idx]; if(!it)return;
+  const id=idKey(it); const cur=ans[id]||{};
+  let h="";
+  for(const d of (CFG.display||[])){
+    const v=it[d.field]; if(v===undefined||v==="")continue;
+    if(d.type==="badge"){ h+=`<span class="badge" style="background:${tierColor(v)}">${d.label||""}: ${v}</span>`; continue; }
+    if(d.type==="title"){ h+=`<div class="fld"><div class="lab">${d.label||""}</div><div class="title">${esc(v)}</div></div>`; continue; }
+    if(d.type==="longtext"){ h+=`<div class="fld"><div class="lab">${d.label||""}</div><div class="longtext">${esc(v)}</div></div>`; continue; }
+    h+=`<div class="fld"><div class="lab">${d.label||""}</div><div class="txt">${esc(v)}</div></div>`;
+  }
+  h+=`<div class="q">${esc(CFG.question||"スコアを選択")}</div><div class="opts">`;
+  for(const o of CFG.options){ const sel=(cur.score===o.value);
+    h+=`<button data-v="${o.value}" class="${sel?'sel':''}" style="${sel?`background:${o.color};border-color:${o.color}`:''}">${esc(o.label)}</button>`; }
+  h+=`</div>`;
+  if(CFG.allow_note) h+=`<textarea class="note" id="note" placeholder="${esc(CFG.note_label||'メモ（任意）')}">${esc(cur.note||"")}</textarea>`;
+  $("#card").innerHTML=h;
+  $("#card").querySelectorAll(".opts button").forEach(b=>b.onclick=()=>{
+    const v=parseFloat(b.dataset.v);
+    ans[id]={...(ans[id]||{}), score:v, note:($("#note")?.value||""), ts:new Date().toISOString(),
+             ...metaOf(it)}; save();
+    setTimeout(()=>{ if(idx<ITEMS.length-1){idx++; render();} else render(); }, 160); // auto-advance
+  });
+  if(CFG.allow_note) $("#note").onchange=e=>{ ans[id]={...(ans[id]||{score:null}), note:e.target.value, ...metaOf(it)}; save(); };
+  const done=Object.values(ans).filter(a=>a.score!==undefined&&a.score!==null).length;
+  $("#prog").textContent=`${idx+1} / ${ITEMS.length}（回答済 ${done}）`;
+  $("#track").style.width=(100*done/ITEMS.length)+"%";
+}
+const metaOf=it=>{const m={}; (CFG.meta_fields||[]).forEach(f=>m[f]=it[f]); return m;};
+function tierColor(v){return ({W:"#b0413e",E:"#d2862b",M:"#3f8f5a"})[v]||"#888";}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+$("#prev").onclick=()=>{if(idx>0){idx--;render();}};
+$("#next").onclick=()=>{if(idx<ITEMS.length-1){idx++;render();}};
+$("#firstUnanswered").onclick=()=>{const i=ITEMS.findIndex(it=>!(idKey(it) in ans)); idx=(i<0?ITEMS.length-1:i); render();};
+function rows(){
+  const cols=[CFG.id_field,...(CFG.meta_fields||[]),"score","note","ts"];
+  const out=[cols.join(",")];
+  for(const it of ITEMS){ const id=idKey(it); const a=ans[id]||{};
+    out.push(cols.map(c=>{let v=(c===CFG.id_field)?id:(a[c]??it[c]??""); v=String(v).replace(/"/g,'""');
+      return /[",\n]/.test(v)?`"${v}"`:v;}).join(",")); }
+  return out.join("\n");
+}
+$("#exportCsv").onclick=()=>{ const blob=new Blob(["﻿"+rows()],{type:"text/csv"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=(CFG.title||"hyouka").replace(/\s+/g,"_")+"_scores.csv"; a.click(); };
+$("#copyTsv").onclick=async()=>{ try{ await navigator.clipboard.writeText(rows().replace(/,/g,"\t"));
+  $("#copyTsv").textContent="コピー済"; setTimeout(()=>$("#copyTsv").textContent="TSVコピー",1200);}catch(e){alert("コピー不可: "+e);} };
+boot();
+</script>
+</body>
+</html>

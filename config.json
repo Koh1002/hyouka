@@ -1,0 +1,22 @@
+{
+  "title": "回収判定の人手検証 (C1)",
+  "subtitle": "LLM判定器の妥当性チェック：レポートが各「洞察」を回収できているか",
+  "items_file": "data/c1_items.json",
+  "id_field": "pair_id",
+  "meta_fields": ["run", "task", "tier", "insight_id"],
+  "display": [
+    { "field": "tier", "label": "Tier", "type": "badge" },
+    { "field": "insight_title", "label": "洞察（探すもの）", "type": "title" },
+    { "field": "insight_content", "label": "洞察の内容", "type": "text" },
+    { "field": "insight_criteria", "label": "判定基準（これが書けていれば「回収」）", "type": "text" },
+    { "field": "report", "label": "エージェントの最終レポート", "type": "longtext" }
+  ],
+  "question": "このレポートは、上の洞察を回収できていますか？",
+  "options": [
+    { "value": 1,   "label": "1.0 — 構造も数値も一致している", "color": "#2e7d32" },
+    { "value": 0.5, "label": "0.5 — 構造（方向・主張）だけ一致（数値なし/ずれ）", "color": "#ef6c00" },
+    { "value": 0,   "label": "0 — 言及がない / 方向が逆", "color": "#c62828" }
+  ],
+  "allow_note": true,
+  "note_label": "メモ（迷った理由など・任意）"
+}
