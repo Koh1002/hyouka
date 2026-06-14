@@ -11,6 +11,7 @@
     { "field": "insight_title", "label": "① 探すこと（この事実が書けている？）", "type": "title" },
     { "field": "insight_content", "label": "くわしい説明", "type": "text" },
     { "field": "insight_criteria", "label": "② 合格の目安（これが書けていれば「見つけられた」）", "type": "text" },
+    { "field": "tech_note", "label": "（参考・任意）専門的な定義を見る", "type": "details" },
     { "field": "report", "label": "③ AIのレポート（この中から①を探す）", "type": "markdown" }
   ],
   "question": "③のレポートは、①「探すこと」を見つけて書けていますか？",

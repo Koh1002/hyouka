@@ -28,6 +28,9 @@
   .fld .lab{font-size:12px;color:var(--sub);font-weight:700}
   .fld .title{font-size:17px;font-weight:700;line-height:1.5;margin-top:3px}
   .fld .txt{font-size:14px;line-height:1.65;margin-top:3px;white-space:pre-wrap}
+  details.ref{margin:8px 0;background:#f6f8fb;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+  details.ref summary{font-size:12px;color:var(--sub);cursor:pointer}
+  details.ref .txt{font-size:12.5px;color:#555}
   .reportbox{margin-top:5px;background:#fafbfd;border:1px solid var(--line);border-radius:10px;
     padding:10px 12px;max-height:50vh;overflow:auto}
   /* rendered markdown */
@@ -107,6 +110,7 @@ function render(){
     const v=it[d.field]; if(v===undefined||v==="")continue;
     if(d.type==="badge"){ h+=`<span class="badge" style="background:${tierColor(v)}">${esc(d.label||"")}: ${esc(v)}</span>`; continue; }
     if(d.type==="title"){ h+=`<div class="fld"><div class="lab">${esc(d.label||"")}</div><div class="title">${esc(v)}</div></div>`; continue; }
+    if(d.type==="details"){ h+=`<details class="ref"><summary>${esc(d.label||"")}</summary><div class="txt">${esc(v)}</div></details>`; continue; }
     if(d.type==="markdown"){ h+=`<div class="fld"><div class="lab">${esc(d.label||"")}</div><div class="reportbox"><div class="md">${md(v)}</div></div></div>`; continue; }
     h+=`<div class="fld"><div class="lab">${esc(d.label||"")}</div><div class="txt">${esc(v)}</div></div>`;
   }
