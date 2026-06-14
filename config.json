@@ -1,21 +1,22 @@
 {
-  "title": "回収判定の人手検証 (C1)",
-  "subtitle": "LLM判定器の妥当性チェック：レポートが各「洞察」を回収できているか",
+  "title": "AIレポートの「見つけられた？」チェック (C1)",
+  "subtitle": "AIが書いたレポートが、本来の事実をちゃんと見つけて書けているかを3段階で評価します",
+  "intro": "### このアプリでやること\n2つのお店（スーパー＝Summit / ドラッグストア＝Tomod's）の購買データをAIが分析し、**レポート**を書きました。\n\n各画面には次が出ます：\n\n- **① 探すこと**：本当はこういう事実がある、という“正解”（1つ）。\n- **② 合格の目安**：レポートに何が書いてあれば「見つけられた」と言えるか。\n- **③ AIのレポート**：実際にAIが書いた文章（この中から①を探します）。\n\nあなたの仕事は、**③のレポートが①をちゃんと見つけて書けているか**を、下のボタンで3段階に選ぶことです。むずかしく考えず、②の目安と見比べて直感で選んでOK。\n\n回答は自動保存され、**同じ端末で開けば続きから**再開できます。スキマ時間に少しずつで大丈夫。終わったら（途中でも）上の「CSV書き出し」で保存できます。",
   "items_file": "data/c1_items.json",
   "id_field": "pair_id",
   "meta_fields": ["run", "task", "tier", "insight_id"],
   "display": [
-    { "field": "tier", "label": "Tier", "type": "badge" },
-    { "field": "insight_title", "label": "洞察（探すもの）", "type": "title" },
-    { "field": "insight_content", "label": "洞察の内容", "type": "text" },
-    { "field": "insight_criteria", "label": "判定基準（これが書けていれば「回収」）", "type": "text" },
-    { "field": "report", "label": "エージェントの最終レポート", "type": "longtext" }
+    { "field": "tier", "label": "種類", "type": "badge" },
+    { "field": "insight_title", "label": "① 探すこと（この事実が書けている？）", "type": "title" },
+    { "field": "insight_content", "label": "くわしい説明", "type": "text" },
+    { "field": "insight_criteria", "label": "② 合格の目安（これが書けていれば「見つけられた」）", "type": "text" },
+    { "field": "report", "label": "③ AIのレポート（この中から①を探す）", "type": "markdown" }
   ],
-  "question": "このレポートは、上の洞察を回収できていますか？",
+  "question": "③のレポートは、①「探すこと」を見つけて書けていますか？",
   "options": [
-    { "value": 1,   "label": "1.0 — 構造も数値も一致している", "color": "#2e7d32" },
-    { "value": 0.5, "label": "0.5 — 構造（方向・主張）だけ一致（数値なし/ずれ）", "color": "#ef6c00" },
-    { "value": 0,   "label": "0 — 言及がない / 方向が逆", "color": "#c62828" }
+    { "value": 1,   "label": "◎ しっかり書けている（中身も数字も合っている）", "color": "#2e7d32" },
+    { "value": 0.5, "label": "○ 方向性は合うが不十分（数字がない/ずれ、部分的）", "color": "#ef6c00" },
+    { "value": 0,   "label": "✕ 書けていない（触れていない、または逆のことを言っている）", "color": "#c62828" }
   ],
   "allow_note": true,
   "note_label": "メモ（迷った理由など・任意）"
